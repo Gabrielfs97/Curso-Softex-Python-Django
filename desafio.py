@@ -68,7 +68,9 @@ while True:
         quantidade_aust -= quantidade
 
     else:
+        
         print("Desculpe, não temos essa quantidade disponível.")
+
         print("caso queira pedir novamente digite 'continuar'")
         continuar = input().lower()
         if continuar == "continuar":
