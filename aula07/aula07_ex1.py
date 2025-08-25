@@ -3,6 +3,8 @@
 ham = 10
 lancho = 0.2
 
+cupom2 = False
+
 print("Bem-vindo ao menu")
 
 while True:
@@ -12,22 +14,23 @@ while True:
     if pedido == "hamburguer":
 
         print(f"o valor do hamburguer é R${ham}")
-        
+
         cupom = input("Você possui cupom de desconto? (sim/não)").lower()
 
         if cupom == "sim":
+            cupom2 = True
             desconto = input("Digite o cupom: ")
 
             if desconto == "lancho20":
+
                 print("Você ganhou 20% de desconto")
                 print(f"novo valor é R$ {ham - (ham * lancho)}")
-
-        elif cupom == "não":
-            print("Sem problemas! Aproveite seu lanche.")
+                break  
         else:
-            print("Cupom inválido.")
-        
+                print("Cupom inválido.")
+    elif cupom == "não":
+            print("Sem problemas! Aproveite seu lanche.")
+
+            break
     else:
         print("Desculpe, apenas possuímos hamburguer no momento.")
-    print("seu pedido foi finalizado")    
-    break
