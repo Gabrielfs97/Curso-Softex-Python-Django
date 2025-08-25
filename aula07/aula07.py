@@ -1,8 +1,9 @@
 #import random
 
-
 pos = 0
+
 #next_pos = random.randint(1,10)
+
 print("bem vindo ao menu de ação")
 
 while True: 
