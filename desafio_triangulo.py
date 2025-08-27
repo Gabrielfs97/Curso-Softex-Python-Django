@@ -28,6 +28,7 @@ Dica: use o método abs() para ter o valor absoluto de um número.
 """
 
 print("#### verificador de triângulo ! ########")
+print("\n")
 
 la = input("digite o valor do lado A: ")
 
@@ -44,13 +45,15 @@ if la.isdigit() and lb.isdigit() and lc.isdigit():
 
     if la > 0 and lb > 0 and lc > 0:
 
-        if (la < lb + lc) \
-        and (lb < la + lc) \
+        if (la < lb + lc)\
+        and (lb < la + lc)\
         and (lc < la + lb):
 
-            if (la > abs(lb - lc)) and (lb > abs(la - lc)) and (lc > abs(la - lb)):
+            if (la > abs(lb - lc))\
+            and (lb > abs(la - lc))\
+            and (lc > abs(la - lb)):
 
-                print(f"os valores {la},{lb},{lc} podem formar um triângulo !")
+                print(f"os valores {la},{lb}, {lc} podem formar um triângulo !")
 
             else:
             
