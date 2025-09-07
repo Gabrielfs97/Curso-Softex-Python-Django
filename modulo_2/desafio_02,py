@@ -1,0 +1,70 @@
+regi_acess = []
+use_acess = set()
+tempo_ativo = 0
+
+
+while True:
+
+    nome = input("Digite o nome do usuário (ou 'sair' para encerrar): ").strip()
+
+    if nome.lower() == "sair":
+
+        break
+
+    if not nome.isalpha():
+       
+       print("Nome inválido. Por favor, use apenas letras.")
+       continue
+
+    print("Status de acesso: \n1 - sucesso\n2 - falha")
+
+    status_input = input("Escolha o status (1 ou 2): ").strip()
+    print()
+
+    if status_input not in ("1", "2"):
+
+        print("Status inválido. Por favor, escolha 1 ou 2.")
+        continue
+
+    try:
+        duracao = int(input("Digite a duração da sessão em minutos: ").strip())
+        print()
+
+    except ValueError:
+
+        print("Duração inválida... Deve ser um número inteiro. registro invalido...")
+        continue
+
+    if status_input == "1":
+     status = "sucesso"
+
+    else:
+     
+     status = "falha"
+
+    regi_acess.append((nome, status, duracao))
+
+    if status == "sucesso":
+
+        use_acess.add(nome)
+
+
+for _, status, duracao in regi_acess:
+
+    if status == "sucesso":
+
+        tempo_ativo += duracao
+
+
+
+print(f"\nRegistros de acessos:\n {regi_acess}")
+
+if not use_acess:
+
+    print("\nNenhum acesso bem-sucedido registrado.")
+
+else:
+ 
+ print(f"\nUsuarios com acesso bem-sucedido:\n {use_acess}")
+ print(f"\nTempo total das sessões bem-sucedidas: {tempo_ativo} minutos")
+ 
