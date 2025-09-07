@@ -65,6 +65,6 @@ if not use_acess:
 
 else:
  
- print(f"\nUsuarios com acesso bem-sucedido:\n {use_acess}")
+ print(f"\nUsuários com acesso bem-sucedido:\n {use_acess}")
  print(f"\nTempo total das sessões bem-sucedidas: {tempo_ativo} minutos")
  
