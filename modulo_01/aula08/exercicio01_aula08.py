@@ -1,6 +1,6 @@
 #numero = input("digite um numero de telefone: ") 
 
-def checador():
+def checador()-> str:
     numero = input("digite um numero de telefone: ")
 
     if not (len(numero) == 11 and numero.isdigit()):
@@ -22,4 +22,4 @@ def checador():
         print(f"seu telefone é válido: {formato_nacional}")
         return formato_nacional
 
-print(checador())
+checador()
