@@ -16,21 +16,21 @@ def contador_de_vogais(palavra: str) -> int:
                 contador_consoantes += 1
         return{
 
-        print(f"O texto possui {len(palavra)} caracteres no total."),
-        print(f"O texto possui {contador_vogais} vogais e {contador_consoantes} consoantes.")
+        print(f"A palavra possui {len(palavra)} caracteres no total."),
+        print(f"A palavra possui {contador_vogais} vogais e {contador_consoantes} consoantes.")
       
         
         }
 
 
-def verificador_de_palindromo(texto: str) -> bool:
+def verificador_de_palindromo(palavra: str) -> bool:
     """Verifica se uma string é um palíndromo. retorna True se for políndromo ou False se não for. """
 
-    texto = texto.lower().strip()
-    texto = ''.join(char for char in texto if char.isalnum())  
-    texto_invertido = texto[::-1]
+    palavra = palavra.lower().strip()
+    palavra = ''.join(char for char in palavra if char.isalnum())  
+    palavra_invertido = palavra[::-1]
 
-    if texto == texto_invertido:
+    if palavra == palavra_invertido:
         print("É um palíndromo.")
         return True
     else:
@@ -38,12 +38,12 @@ def verificador_de_palindromo(texto: str) -> bool:
         return False
 
 
-texto_entrada = input("Digite uma palavra: ")
+
+palavra_entrada = input("Digite uma palavra: ")
 
 print("---------Resultados---------")
 print()
 
-contador_de_vogais(texto_entrada)
-verificador_de_palindromo(texto_entrada)
-print()
-print("---------Fim do Programa---------")
+contador_de_vogais(palavra_entrada)
+verificador_de_palindromo(palavra_entrada)
+
