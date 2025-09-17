@@ -11,7 +11,6 @@ def batalha(heroi, monstro):
         print("2) Fugir")
         print("3) Usar Poção")
         print("4) Defender")
-        
         escolha = input("Digite o número da ação: ")
 
         if escolha == "1":

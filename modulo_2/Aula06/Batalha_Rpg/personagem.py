@@ -34,6 +34,7 @@ class Personagem:
             print(f"{self.nome} defendeu e reduziu o dano para {dano}")
             self.defendendo = False
         self.vida -= dano
+        self.vida = max(self.vida, 0)
     
     def usar_pocao(self):
         if self.pocoes > 0 :
