@@ -15,8 +15,10 @@ class Estudante(Pessoa):
     def apresentar(self):
         print(f"Ola, eu sou {self._Pessoa__nome} e tenho {self._Pessoa__idade} anos e curso {self.__classe}")
 
+
 p1 = Pessoa("Marcos",20)
 p2 = Estudante("Leo",30,"medio")
+
 
 lista1:list[Pessoa] = [p1,p2]
 

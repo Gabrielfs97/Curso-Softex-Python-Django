@@ -59,8 +59,10 @@ v1 = Video("Inception",8880,"1080p")
 dicionario1["musicas"].append(m1)
 dicionario1["videos"].append(v1)
 
+
 for musica in dicionario1["musicas"]:
     musica.exibir()
+
 
 for video in dicionario1["videos"]:
     video.exibir()
