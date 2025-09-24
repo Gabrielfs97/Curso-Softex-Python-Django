@@ -51,13 +51,16 @@ class Video(Midia):
     def exibir(self):
         print(f"Título: {self.titulo}, Duração: {self.duracao_seg} segundos, Resolução: {self.resolucao}")
 
-dicionario1 = {"musicas":[], "videos":[]}
+dicionario1 = {"musicas": [], "videos": []}
 
 m1 = Musica("Imagine",183,"John Lennon")
 v1 = Video("Inception",8880,"1080p")
+
 dicionario1["musicas"].append(m1)
 dicionario1["videos"].append(v1)
 
+for musica in dicionario1["musicas"]:
+    musica.exibir()
 
-print(f"Musicas: {dicionario1['musicas']}")
-print(f"Videos: {dicionario1['videos']}")
+for video in dicionario1["videos"]:
+    video.exibir()
