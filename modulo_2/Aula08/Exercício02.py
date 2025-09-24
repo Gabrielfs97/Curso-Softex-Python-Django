@@ -28,37 +28,47 @@ item, demonstrando o polimorfismo de forma organizada.
 
 
 class Midia:
+
     def __init__(self, titulo: str, duracao_seg: int):
+
         self.titulo = titulo
         self.duracao_seg = duracao_seg
 
     def exibir(self):
+
         print(f"Título: {self.titulo}, Duração: {self.duracao_seg} segundos")
 
 class Musica(Midia):
+
     def __init__(self, titulo: str, duracao_seg: int, artista: str):
+
         super().__init__(titulo, duracao_seg)
         self.artista = artista
 
     def exibir(self):
+
         print(f"Título: {self.titulo}, Duração: {self.duracao_seg} segundos, Artista: {self.artista}")
 
 class Video(Midia):
+
     def __init__(self, titulo: str, duracao_seg: int, resolucao: str):
         super().__init__(titulo, duracao_seg)
+
         self.resolucao = resolucao
 
     def exibir(self):
+
         print(f"Título: {self.titulo}, Duração: {self.duracao_seg} segundos, Resolução: {self.resolucao}")
 
 dicionario1 = {"musicas": [], "videos": []}
 
 m1 = Musica("Imagine",183,"John Lennon")
 v1 = Video("Inception",8880,"1080p")
+v2 = Video("Matrix",8160,"4K")
 
 dicionario1["musicas"].append(m1)
 dicionario1["videos"].append(v1)
-
+dicionario1["videos"].append(v2)
 
 for musica in dicionario1["musicas"]:
     musica.exibir()
