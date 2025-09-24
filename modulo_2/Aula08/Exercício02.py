@@ -70,9 +70,7 @@ dicionario1["musicas"].append(m1)
 dicionario1["videos"].append(v1)
 dicionario1["videos"].append(v2)
 
-for musica in dicionario1["musicas"]:
-    musica.exibir()
-
-
-for video in dicionario1["videos"]:
-    video.exibir()
+for M in dicionario1.values():
+    for item in M:
+        item.exibir()
+   
