@@ -18,9 +18,11 @@ Método: ligar_computador() que chama o método ligar() de cada um dos seus disp
 
 """
 
+
 class Teclado:
     def __init__(self):
         pass
+
     def ligar_t(self):
         print("Teclado ligado...")
 
@@ -28,8 +30,10 @@ class Teclado:
 class Mouse:
     def __init__(self):
         pass    
+
     def mouse_l(self):
         print("Mouse ligado...")
+
 
 class Monitor:
     def __init__(self):
