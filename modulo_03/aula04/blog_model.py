@@ -1,4 +1,4 @@
-import sqlite3
+
 from datetime import datetime
 from database import DatabaseConnection
 
@@ -42,7 +42,7 @@ class Blogmodel:
             (titulo,postagem)
             )
             print("Post criado com sucesso ")
-
+            
         finally:
 
             self.db_conn.close()
