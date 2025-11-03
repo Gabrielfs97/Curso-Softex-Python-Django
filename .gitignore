@@ -2,3 +2,5 @@ __pycache__
 .vscode/settings.json
 *.db 
 .venv
+venv
+*sqlite3
