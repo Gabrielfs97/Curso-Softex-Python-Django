@@ -53,9 +53,9 @@ def register(request):
 # Cria uma instância do formulário com os dados enviados 
         form = UserCreationForm(request.POST) 
 # Verifica se o formulário é válido (ex: senhas batem, username não existe) 
-    if form.is_valid(): 
-        user = form.save() # Salva o novo usuário no banco 
-        login(request, user) # Faz o login automático do usuário 
+        if form.is_valid(): 
+          user = form.save() # Salva o novo usuário no banco 
+          login(request, user) # Faz o login automático do usuário 
         return redirect('home') # Redireciona para a home 
 # Se a requisição for GET, o usuário apenas visitou a página 
     else: 
