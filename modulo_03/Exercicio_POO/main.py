@@ -3,7 +3,7 @@ from canais import Email, SMS
 from sistema import SistemaAlerta
 
 def main():
-    
+
     print("---- 1. TESTE DE SEGURANÇA ----")
 
     cliente = Usuario("Lucas", "Lucas@email.com")
@@ -11,7 +11,7 @@ def main():
     print(f"E-mail inicial do cliente: {cliente.email}")
 
     cliente.email = "Lucas.com" 
-    cliente.email = "carlos_novo@email.com" 
+    cliente.email = "Lucas_novo@email.com" 
 
     print(f"E-mail atual do cliente: {cliente.email}")
 
