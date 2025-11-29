@@ -1,7 +1,7 @@
 
 class CanalEnvio:
     def enviar(self, mensagem):
-        raise NotImplementedError("Este método deve ser sobrescrito pelas subclasses.")
+        raise NotImplementedError("deve ser subscrito pelas subclasses.")
 
 class Email(CanalEnvio):
     def enviar(self, mensagem):

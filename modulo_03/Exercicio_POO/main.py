@@ -5,11 +5,11 @@ from sistema import SistemaAlerta
 def main():
     print("---- 1. TESTE DE SEGURANÇA ----")
 
-    cliente = Usuario("Carlos", "carlos@email.com")
+    cliente = Usuario("Lucas", "Lucas@email.com")
 
     print(f"E-mail inicial do cliente: {cliente.email}")
 
-    cliente.email = "carlosgmail.com" 
+    cliente.email = "Lucas.com" 
     cliente.email = "carlos_novo@email.com" 
 
     print(f"E-mail atual do cliente: {cliente.email}")
