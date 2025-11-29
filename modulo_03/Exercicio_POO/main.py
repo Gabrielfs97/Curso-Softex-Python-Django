@@ -3,6 +3,7 @@ from canais import Email, SMS
 from sistema import SistemaAlerta
 
 def main():
+    
     print("---- 1. TESTE DE SEGURANÇA ----")
 
     cliente = Usuario("Lucas", "Lucas@email.com")
@@ -21,6 +22,7 @@ def main():
     sistema.disparar("O servidor caiu!")
 
     print("\n---- 3. TESTE DE SMS ----")
+
     canal_sms = SMS()
 
     sistema_sms = SistemaAlerta(cliente, canal_sms)

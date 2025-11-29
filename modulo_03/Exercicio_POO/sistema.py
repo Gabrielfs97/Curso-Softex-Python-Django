@@ -1,5 +1,6 @@
 
 class SistemaAlerta:
+    
     def __init__(self, usuario, canal):
         self.usuario = usuario
         self.canal = canal
