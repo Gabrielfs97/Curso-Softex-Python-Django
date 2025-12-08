@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import Tarefa
-
 class TarefaSerializer(serializers.ModelSerializer):
     """
     Serializer para o Model Tarefa.
