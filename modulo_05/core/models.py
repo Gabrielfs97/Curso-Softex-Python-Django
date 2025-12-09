@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 class Tarefa(models.Model):
+    
     PRIORIDADE_CHOICES = [
         ('baixa', 'Baixa'),
         ('media', 'Média'),
@@ -27,10 +28,18 @@ class Tarefa(models.Model):
         verbose_name='Prioridade'
     )
 
+    prazo = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name='Prazo'
+    )
+
     class Meta:
         verbose_name = 'Tarefa'
         verbose_name_plural = 'Tarefas'
         ordering = ['-criada_em']
 
     def __str__(self):
-        return f"{self.titulo} ({'Concluída' if self.concluida else 'Pendente'}) - Prioridade: {self.get_prioridade_display()}"
+        status = 'Concluída' if self.concluida else 'Pendente'
+        prazo_str = f" - Prazo: {self.prazo}" if self.prazo else ""
+        return f"{self.titulo} ({status}) - Prioridade: {self.get_prioridade_display()}{prazo_str}"
