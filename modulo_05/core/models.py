@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 class Tarefa(models.Model):
+    """Adicionar Campo de Data de Conclusão (Lógica de preenchimento/limpeza
+no Serializer)"""
     
     PRIORIDADE_CHOICES = [
         ('baixa', 'Baixa'),
@@ -18,8 +20,14 @@ class Tarefa(models.Model):
     )
 
     titulo = models.CharField(max_length=200, verbose_name='Título')
+
     concluida = models.BooleanField(default=False, verbose_name='Concluída')
+
+
     criada_em = models.DateTimeField(auto_now_add=True, verbose_name='Criada em')
+
+    concluida_em = models.DateTimeField(null=True,blank=True,verbose_name='Concluída em')
+    
     
     prioridade = models.CharField(
         max_length=10,
@@ -35,11 +43,14 @@ class Tarefa(models.Model):
     )
 
     class Meta:
+
         verbose_name = 'Tarefa'
         verbose_name_plural = 'Tarefas'
         ordering = ['-criada_em']
+        ordering = ['concluida', 'prazo']
 
     def __str__(self):
         status = 'Concluída' if self.concluida else 'Pendente'
         prazo_str = f" - Prazo: {self.prazo}" if self.prazo else ""
-        return f"{self.titulo} ({status}) - Prioridade: {self.get_prioridade_display()}{prazo_str}"
+        concluida_em_str = f" - Concluída em: {self.concluida_em}" if self.concluida_em else ""
+        return f"{self.titulo} ({status}) - Prioridade: {self.get_prioridade_display()}{prazo_str}{concluida_em_str}"

@@ -6,7 +6,7 @@ class TarefaSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Tarefa
-        fields = ['id', 'titulo', 'concluida', 'criada_em', 'prioridade','prazo']
+        fields = ['id', 'titulo', 'concluida', 'criada_em', 'prioridade','prazo','concluida_em']
         read_only_fields = ['id', 'criada_em']
         
         extra_kwargs = {

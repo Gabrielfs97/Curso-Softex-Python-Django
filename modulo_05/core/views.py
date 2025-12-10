@@ -5,9 +5,6 @@ from .models import Tarefa
 from .serializers import TarefaSerializer
 from django.shortcuts import get_object_or_404
 
-
-
-
 class ListaTarefasAPIView(APIView):
     """Lista todas as tarefas e cria novas tarefas.
 
