@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import ListaTarefasAPIView, TarefaEstatisticasView, DetalheTarefaAPIView
+from .views import ListaTarefasAPIView, TarefaEstatisticasView, DetalheTarefaAPIView, DuplicarTarefaAPIView
+
 
 
 app_name = 'core'
@@ -21,4 +22,9 @@ urlpatterns = [
         TarefaEstatisticasView.as_view(), 
         name='tarefa-estatisticas'
         ),
+        path(
+            'tarefas/<int:pk>/duplicar/',
+             DuplicarTarefaAPIView.as_view(),
+             name='duplicar-tarefa'
+             )
 ]
