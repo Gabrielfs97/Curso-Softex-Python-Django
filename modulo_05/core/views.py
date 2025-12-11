@@ -66,7 +66,9 @@ class DetalheTarefaAPIView(APIView):
         return get_object_or_404(Tarefa, pk=pk)
 
     def get(self, request, pk, format=None):
-        """Retorna os detalhes de uma única tarefa por ID."""
+
+        """retorna os detalhes de uma única tarefa por ID."""
+        
         tarefa = self.get_object(pk)
         serializer = TarefaSerializer(tarefa)
         return Response(serializer.data, status=status.HTTP_200_OK)
