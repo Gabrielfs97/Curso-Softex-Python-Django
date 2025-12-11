@@ -165,3 +165,82 @@ class DuplicarTarefaAPIView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+class ConcluirTodasTarefasView(APIView):
+
+    """
+    Endpoint para concluir todas as tarefas pendentes em lote.
+    PATCH /api/tarefas/concluir-todas/
+    """
+    
+    def patch(self, request, format=None):
+
+        """
+        Marca todas as tarefas pendentes como concluídas.
+        """
+        
+        try:
+            # Busca todas as tarefas pendentes
+            tarefas_pendentes = Tarefa.objects.filter(concluida=False)
+            
+            if not tarefas_pendentes.exists():
+                return Response(
+                    {
+                        'message': 'Não há tarefas pendentes para concluir.',
+                        'tarefas_afetadas': 0
+                    },
+                    status=status.HTTP_200_OK
+                )
+            
+            # Contador 
+            tarefas_concluidas = 0
+            tarefas_com_erro = 0
+            erros_detalhados = []
+            
+            # Para cada tarefa pendente, usa o serializer para marcar como concluída
+            for tarefa in tarefas_pendentes:
+                try:
+                    # Usa o serializer para garantir que o concluida_em funcione
+                    serializer = TarefaSerializer(
+                        tarefa, 
+                        data={'concluida': True}, 
+                        partial=True
+                    )
+                    
+                    if serializer.is_valid():
+                        serializer.save()
+                        tarefas_concluidas += 1
+                    else:
+                        tarefas_com_erro += 1
+                        erros_detalhados.append({
+                            'tarefa_id': tarefa.id,
+                            'titulo': tarefa.titulo,
+                            'erro': serializer.errors
+                        })
+                        
+                except Exception as e:
+                    tarefas_com_erro += 1
+                    erros_detalhados.append({
+                        'tarefa_id': tarefa.id,
+                        'titulo': tarefa.titulo,
+                        'erro': str(e)
+                    })
+            
+            # resposta com um resumo
+            resposta = {
+                'message': f'Concluídas {tarefas_concluidas} tarefa(s) pendente(s).',
+                'tarefas_afetadas': tarefas_concluidas,
+                'tarefas_com_erro': tarefas_com_erro,
+                'total_tarefas_pendentes': tarefas_pendentes.count()
+            }
+            
+            # sinaliza erro se houver
+            if erros_detalhados:
+                resposta['erros_detalhados'] = erros_detalhados
+            
+            return Response(resposta, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Erro ao processar requisição em lote: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
