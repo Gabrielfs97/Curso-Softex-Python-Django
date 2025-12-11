@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+
 class Tarefa(models.Model):
-    """Adicionar Campo de Data de Conclusão (Lógica de preenchimento/limpeza
-no Serializer)"""
+    
     
     PRIORIDADE_CHOICES = [
         ('baixa', 'Baixa'),
@@ -46,8 +46,7 @@ no Serializer)"""
 
         verbose_name = 'Tarefa'
         verbose_name_plural = 'Tarefas'
-        ordering = ['-criada_em']
-        ordering = ['concluida', 'prazo']
+        ordering = ['concluida', 'prazo', '-criada_em']
 
     def __str__(self):
         status = 'Concluída' if self.concluida else 'Pendente'
