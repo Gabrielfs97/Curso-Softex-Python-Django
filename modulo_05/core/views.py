@@ -9,18 +9,18 @@ from datetime import timedelta
 class ListaTarefasAPIView(APIView):
     """
     Lista todas as tarefas e cria novas tarefas.
-
-    GET /api/tarefas/ -> lista
-    POST /api/tarefas/ -> cria
     """
-
+    
     def get(self, request, format=None):
         tarefas = Tarefa.objects.all()
         serializer = TarefaSerializer(tarefas, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, format=None):
-        serializer = TarefaSerializer(data=request.data)
+        serializer = TarefaSerializer(
+            data=request.data,
+            context={'request': request}  # contexto
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -28,8 +28,8 @@ class ListaTarefasAPIView(APIView):
     
 class TarefaEstatisticasView(APIView):
     """
-    Endpoint para retornar estatísticas das tarefas.
-    URL: /api/tarefas/estatisticas/
+    endpoint para retornar estatísticas das tarefas.
+    uRL: /api/tarefas/estatisticas/
     """
     
     def get(self, request, format=None):
@@ -66,24 +66,42 @@ class DetalheTarefaAPIView(APIView):
         return get_object_or_404(Tarefa, pk=pk)
 
     def get(self, request, pk, format=None):
-
         """retorna os detalhes de uma única tarefa por ID."""
-        
         tarefa = self.get_object(pk)
         serializer = TarefaSerializer(tarefa)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk, format=None):
+        """
+         permite atualização completa da tarefa.
+        """
         tarefa = self.get_object(pk)
-        serializer = TarefaSerializer(tarefa, data=request.data)
+        
+        serializer = TarefaSerializer(
+            tarefa, 
+            data=request.data,
+            context={'request': request}  # contexto
+        )
+        
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk, format=None):
+        """
+        atualizaçao parcial - proibido conclusão de tarefas de alta prioridade.
+        """
         tarefa = self.get_object(pk)
-        serializer = TarefaSerializer(tarefa, data=request.data, partial=True)
+        
+
+        serializer = TarefaSerializer(
+            tarefa, 
+            data=request.data, 
+            partial=True,
+            context={'request': request}  # contexto
+        )
+        
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -95,20 +113,17 @@ class DetalheTarefaAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class DuplicarTarefaAPIView(APIView):
+
     """
-    Endpoint para duplicar uma tarefa existente.
+    endpoint para duplicar uma tarefa existente.
     POST /api/tarefas/<pk>/duplicar/
     """
     
     def post(self, request, pk, format=None):
-        """
-        duplica a tarefa especificada pelo ID.
-        """
+
         try:
-            
+
             tarefa_original = get_object_or_404(Tarefa, pk=pk)
-            
-           
             data = request.data
             
             
@@ -142,22 +157,17 @@ class DuplicarTarefaAPIView(APIView):
                 #'user': tarefa_original.user if hasattr(tarefa_original, 'user') else None
             }
             
+           # cria uma nova tarefa usando o serializer
+            serializer = TarefaSerializer(
+                data=dados_tarefa_copia,
+                context={'request': request}  #contexto
+            )
             
-            # cria uma nova tarefa
-            serializer = TarefaSerializer(data=dados_tarefa_copia)
             if serializer.is_valid():
                 serializer.save()
-                
-                # retorna os dados da nova tarefa
-                return Response(
-                    serializer.data, 
-                    status=status.HTTP_201_CREATED
-                )
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
-                return Response(
-                    serializer.errors, 
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 
         except Exception as e:
             return Response(
@@ -166,20 +176,19 @@ class DuplicarTarefaAPIView(APIView):
             )
 
 class ConcluirTodasTarefasView(APIView):
-
     """
-    Endpoint para concluir todas as tarefas pendentes em lote.
+    endpoint para concluir todas as tarefas pendentes em lote.
     PATCH /api/tarefas/concluir-todas/
     """
     
     def patch(self, request, format=None):
-
         """
-        Marca todas as tarefas pendentes como concluídas.
+        marca todas as tarefas pendentes como concluidas.
+        RESPEITANDO: Tarefas de prioridade alta NÃO podem ser concluidas em lote
         """
-        
         try:
-            # Busca todas as tarefas pendentes
+            # busca todas as tarefas pendentes
+            
             tarefas_pendentes = Tarefa.objects.filter(concluida=False)
             
             if not tarefas_pendentes.exists():
@@ -191,19 +200,32 @@ class ConcluirTodasTarefasView(APIView):
                     status=status.HTTP_200_OK
                 )
             
-            # Contador 
+            # contador
             tarefas_concluidas = 0
             tarefas_com_erro = 0
+            tarefas_alta_ignoradas = 0  
             erros_detalhados = []
             
-            # Para cada tarefa pendente, usa o serializer para marcar como concluída
+            # para cada tarefa pendente, usa o serializer para marcar como concluída
             for tarefa in tarefas_pendentes:
                 try:
-                    # Usa o serializer para garantir que o concluida_em funcione
+
+                    # tarefas de prioridade alta não podem ser concluídas em lote
+                    if tarefa.prioridade == 'alta':
+                        tarefas_alta_ignoradas += 1
+                        erros_detalhados.append({
+                            'tarefa_id': tarefa.id,
+                            'titulo': tarefa.titulo,
+                            'erro': 'Tarefa com prioridade ALTA não pode ser concluída em lote (use PUT individual).'
+                        })
+                        continue  
+                    
+                    # tenta marcar como concluída
                     serializer = TarefaSerializer(
                         tarefa, 
                         data={'concluida': True}, 
-                        partial=True
+                        partial=True,
+                        context={'request': request}  # contexto
                     )
                     
                     if serializer.is_valid():
@@ -230,12 +252,14 @@ class ConcluirTodasTarefasView(APIView):
                 'message': f'Concluídas {tarefas_concluidas} tarefa(s) pendente(s).',
                 'tarefas_afetadas': tarefas_concluidas,
                 'tarefas_com_erro': tarefas_com_erro,
-                'total_tarefas_pendentes': tarefas_pendentes.count()
+                'tarefas_alta_ignoradas': tarefas_alta_ignoradas,
+                'total_tarefas_pendentes': tarefas_pendentes.count(),
+                'nota': 'Tarefas com prioridade ALTA foram ignoradas (só podem ser concluídas via PUT individual).'
             }
             
             # sinaliza erro se houver
             if erros_detalhados:
-                resposta['erros_detalhados'] = erros_detalhados
+                resposta['erros_detalhados'] = erros_detalhados[:5]  # Limita a 5
             
             return Response(resposta, status=status.HTTP_200_OK)
             

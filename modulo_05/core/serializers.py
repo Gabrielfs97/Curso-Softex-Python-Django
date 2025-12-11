@@ -1,13 +1,15 @@
 from rest_framework import serializers
+from rest_framework.views import APIView
 from .models import Tarefa
 from datetime import date
 from django.utils import timezone
+
 
 class TarefaSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Tarefa
-        fields = ['id', 'titulo', 'concluida', 'criada_em', 'prioridade','prazo','concluida_em']
+        fields = ['id', 'titulo', 'concluida', 'criada_em', 'prioridade', 'prazo', 'concluida_em']
         read_only_fields = ['id', 'criada_em', 'concluida_em']
         
         extra_kwargs = {
@@ -16,7 +18,6 @@ class TarefaSerializer(serializers.ModelSerializer):
                 'error_messages': {
                     'invalid_choice': "Prioridade inválida. Escolha entre: baixa, media, alta."
                 }
-
             },
             'prazo': {
                 'required': False,
@@ -25,9 +26,17 @@ class TarefaSerializer(serializers.ModelSerializer):
             'concluida': {
                 'required': False  
             }
-
         }
 
+    def __init__(self, *args, **kwargs):
+        """
+        Inicializa o serializer com contexto de validação
+        """
+
+        super().__init__(*args, **kwargs)
+        
+        self.request = self.context.get('request', None) if self.context else None
+        
     def validate(self, data):
         """
         Validação de objeto completo (múltiplos campos).
@@ -37,7 +46,7 @@ class TarefaSerializer(serializers.ModelSerializer):
         prazo = data.get('prazo', None)
         hoje = date.today()
         
-
+        
         if 'urgente' in titulo and concluida:
             raise serializers.ValidationError({
                 'non_field_errors': ["Tarefas urgentes não podem ser criadas como concluídas."]
@@ -52,12 +61,30 @@ class TarefaSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'prazo': ["Para tarefas pendentes, o prazo é obrigatório."]
             })
+
+        if self.instance:  
+            prioridade_atual = self.instance.prioridade
+            concluida_atual = self.instance.concluida
+            concluida_nova = data.get('concluida', concluida_atual)
+            
+           
+            if not concluida_atual and concluida_nova:
+                
+                if prioridade_atual == 'alta': 
+
+                    request = self.context.get('request') 
+                    if request and request.method == 'PATCH':
+                        raise serializers.ValidationError({
+                            'non_field_errors': [
+                                "Tarefas com prioridade ALTA só podem ser concluídas via PUT (atualização completa), não via PATCH."
+                            ]
+                        })
         
         return data
     
     def validate_prioridade(self, value):
         """
-        Validação especifica para o campo 'prioridade'.
+        validação especifica para o campo 'prioridade'.
         """
         prioridades_validas = ['baixa', 'media', 'alta']
 
