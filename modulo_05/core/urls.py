@@ -4,7 +4,8 @@ from .views import (
             TarefaEstatisticasView,
             DetalheTarefaAPIView,
             DuplicarTarefaAPIView,
-            ConcluirTodasTarefasView
+            ConcluirTodasTarefasView,
+            MinhaView,
             )
 
 
@@ -41,4 +42,6 @@ urlpatterns = [
         ConcluirTodasTarefasView.as_view(),
         name='concluir-todas-tarefas'
         ),
+
+    path('teste/',MinhaView.as_view(), name='minhaview'),
 ]

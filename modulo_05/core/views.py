@@ -5,12 +5,12 @@ from .models import Tarefa
 from .serializers import TarefaSerializer
 from django.shortcuts import get_object_or_404
 from datetime import timedelta
+from rest_framework.permissions import IsAuthenticated
 
 class ListaTarefasAPIView(APIView):
     """
     Lista todas as tarefas e cria novas tarefas.
     """
-    
     def get(self, request, format=None):
         tarefas = Tarefa.objects.all()
         serializer = TarefaSerializer(tarefas, many=True)
@@ -268,3 +268,13 @@ class ConcluirTodasTarefasView(APIView):
                 {'error': f'Erro ao processar requisição em lote: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    
+class MinhaView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response(
+            {'message': f'Olá, {request.user.username}! Você está autenticado.'},
+            status=status.HTTP_200_OK
+        )
+        
