@@ -13,8 +13,6 @@ class Tarefa(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        null=True,  # Permite NULL no banco
-        blank=True,  # Permite vazio em formulários
         related_name='tarefas',
         verbose_name='Usuário'
     )

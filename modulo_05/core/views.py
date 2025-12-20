@@ -1,11 +1,15 @@
+from urllib import request
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status,generics
+from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import Tarefa
-from .serializers import TarefaSerializer
+from .serializers import TarefaSerializer,CustomTokenObtainPairSerializer
 from django.shortcuts import get_object_or_404
 from datetime import timedelta
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 class ListaTarefasAPIView(APIView):
     """
@@ -278,3 +282,136 @@ class MinhaView(APIView):
             status=status.HTTP_200_OK
         )
         
+
+class TarefaListCreateAPIView(generics.ListCreateAPIView):
+    """
+    Lista tarefas e permite a criação de novas tarefas.
+    PROTEGIDA: Requer autenticação JWT.
+    """
+    queryset = Tarefa.objects.all()
+    serializer_class = TarefaSerializer
+    permission_classes = [IsAuthenticated] # ← Proteção
+    # MÉTODO CHAVE: Injeta o usuário logado antes de salvar o objeto
+    def perform_create(self, serializer):
+        """
+        Associa a tarefa ao usuário logado (request.user) automaticamente.
+        """
+     # request.user é garantido como autenticado pelo IsAuthenticated
+        serializer.save(user=self.request.user)
+
+class TarefaRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Detalhes de tarefa, atualização e exclusão.
+    PROTEGIDA: Requer autenticação JWT.
+    """
+    queryset = Tarefa.objects.all()
+    serializer_class = TarefaSerializer
+    permission_classes = [IsAuthenticated]
+    # MÉTODO CHAVE: Garante que apenas o dono da tarefa possa acessá-la
+    def get_queryset(self):
+        """
+        Filtra as tarefas para retornar apenas as do usuário logado.
+        """
+        user = self.request.user
+        return Tarefa.objects.filter(user=user)
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """View que usa o serializer customizado."""
+    serializer_class = CustomTokenObtainPairSerializer
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh")
+            token = RefreshToken(refresh_token)
+            token.blacklist()  # Adiciona o token à lista negra
+            return Response(
+                {"detail": "Logout realizado com sucesso."},
+                status=status.HTTP_205_RESET_CONTENT
+            )
+        except Exception:  # Captura exceções como token_not_valid
+            return Response(
+                {"detail": "Token inválido."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+class MeView(APIView):
+    """
+    Endpoint para retornar dados do usuário autenticado.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        user = request.user
+        return Response(
+            {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'is_staff': user.is_staff,
+            'date_joined': user.date_joined
+            },
+        )
+    
+class ChangePasswordView(APIView):
+    """
+    Endpoint para alteração de senha do usuário autenticado.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+     
+     user = request.user
+
+     old_password = request.data.get('old_password')
+
+     new_password = request.data.get('new_password')
+
+     if not old_password or not new_password:
+        return Response(
+                {'error': 'Os campos "old_password" e "new_password" são obrigatórios'},
+                status=status.HTTP_400_BAD_REQUEST)
+
+     if not user.check_password(old_password):
+        return Response( {'error': 'Senha atual incorreta'},status=400)
+    
+     if old_password == new_password:
+            return Response(
+                {'error': 'A nova senha deve ser diferente da senha atual'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+     
+     user.set_password(new_password)
+     user.save()
+
+     return Response({'detail': 'Senha alterada com sucesso'})   
+    
+class UserStatsView(APIView):
+
+    """
+    Endpoint para retornar estatísticas das tarefas do usuário autenticado.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        user = request.user
+        
+        # Filtra as tarefas apenas do usuário logado
+        tarefas_usuario = Tarefa.objects.filter(user=user)
+        
+        # Calcula estatísticas
+        total_tarefas = tarefas_usuario.count()
+        concluidas = tarefas_usuario.filter(concluida=True).count()
+        pendentes = total_tarefas - concluidas
+        
+        # Calcula taxa de conclusão e evita a divisão por zero
+        taxa_conclusao = concluidas / total_tarefas if total_tarefas > 0 else 0
+        
+        # Resultado
+        return Response({
+            "total_tarefas": total_tarefas,
+            "concluidas": concluidas,
+            "pendentes": pendentes,
+            "taxa_conclusao": round(taxa_conclusao, 2)
+        }, status=status.HTTP_200_OK)

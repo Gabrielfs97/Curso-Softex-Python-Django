@@ -3,14 +3,21 @@ from rest_framework.views import APIView
 from .models import Tarefa
 from datetime import date
 from django.utils import timezone
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class TarefaSerializer(serializers.ModelSerializer):
+    """
+    Serializer para Tarefa com segurança.
+    O campo 'user' é exibido (read-only) mas NÃO aceito na entrada.
+    """
+    # 1. Mostra o username do usuário em vez do ID (read-only na saída)
+    user = serializers.StringRelatedField(read_only=True)
     
     class Meta:
         model = Tarefa
-        fields = ['id', 'titulo', 'concluida', 'criada_em', 'prioridade', 'prazo', 'concluida_em']
-        read_only_fields = ['id', 'criada_em', 'concluida_em']
+        fields = ['id', 'user', 'titulo', 'concluida', 'criada_em', 'prioridade', 'prazo', 'concluida_em']
+        read_only_fields = ['id', 'user', 'criada_em', 'concluida_em']
         
         extra_kwargs = {
             'prioridade': {
@@ -137,3 +144,14 @@ class TarefaSerializer(serializers.ModelSerializer):
         
        #teste
         return super().update(instance, validated_data)
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+
+    @classmethod
+    def get_token(cls, user):
+     token = super().get_token(user)
+    # Adicionar campos customizados ao payload
+     token['username'] = user.username
+     token['email'] = user.email
+     token['is_staff'] = user.is_staff
+     return token

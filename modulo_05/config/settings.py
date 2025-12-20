@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'core',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -135,19 +136,33 @@ REST_FRAMEWORK = {
 'rest_framework_simplejwt.authentication.JWTAuthentication',
 ),
 # Outras configurações do DRF podem ser adicionadas aqui
+'DEFAULT_THROTTLE_CLASSES': [
+'rest_framework.throttling.AnonRateThrottle',
+'rest_framework.throttling.UserRateThrottle'
+],
+
+'DEFAULT_THROTTLE_RATES': {
+'anon': '100/day', # 100 requisições por dia para anônimos (ex: /token/)
+'user': '3000/day' # 3000 requisições por dia para autenticados (ex: /tarefas/)
+}
+
 }
 
 
 # Configuração do Simple JWT
 SIMPLE_JWT = {
 # Tempo de vida do Access Token (curto!)
-'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+'ACCESS_TOKEN_LIFETIME': timedelta(minutes=20),
 # Tempo de vida do Refresh Token (longo!)
-'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 # Define o esquema de autenticação no header HTTP
 'AUTH_HEADER_TYPES': ('Bearer',),
 # Algoritmo de criptografia
 'ALGORITHM': 'HS256',
 # Nome do campo de usuário no payload (user_id é padrão)
 'USER_ID_CLAIM': 'user_id',
+
+'ROTATE_REFRESH_TOKENS': True,
+
+'BLACKLIST_AFTER_ROTATION': True,
 }

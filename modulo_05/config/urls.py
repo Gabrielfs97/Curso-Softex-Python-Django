@@ -20,6 +20,7 @@ from rest_framework_simplejwt.views import (
 TokenObtainPairView, # Login (obter access e refresh tokens)
 TokenRefreshView, # Renovar token
 )
+from core.views import CustomTokenObtainPairView
 
 urlpatterns = [
 path('admin/', admin.site.urls),
@@ -35,5 +36,11 @@ name='token_refresh'),
 
 # App core
 path('api/', include('core.urls')),
+
+path('api/token/',
+CustomTokenObtainPairView.as_view(), # ← View customizada
+name='token_obtain_pair'),
+
+
 
 ]
