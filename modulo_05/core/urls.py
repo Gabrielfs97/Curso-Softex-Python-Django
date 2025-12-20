@@ -11,7 +11,8 @@ from .views import (
             LogoutView,MeView,
             ChangePasswordView,
             UserStatsView,
-            RegisterView
+            RegisterView,
+            UserUpdateView,
             
             )
 
@@ -74,7 +75,7 @@ urlpatterns = [
 
     path('register/', RegisterView.as_view(), name='register'),
 
-
+    path('me/update/', UserUpdateView.as_view(), name='user-update'),
 
 
 ]

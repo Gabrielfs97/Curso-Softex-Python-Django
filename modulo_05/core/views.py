@@ -8,13 +8,15 @@ from .serializers import (
     TarefaSerializer,
     CustomTokenObtainPairSerializer,
     UserRegistrationSerializer,
+    UserUpdateSerializer,
+    UserProfileSerializer,
     )
 from django.shortcuts import get_object_or_404
 from datetime import timedelta
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
-from .permissions import IsGerente
+from .permissions import IsGerente, IsAdminOrOwner
 
 
 class ListaTarefasAPIView(APIView):
@@ -295,7 +297,7 @@ class TarefaListCreateAPIView(generics.ListCreateAPIView):
     PROTEGIDA: Requer autenticação JWT.
     """
     serializer_class = TarefaSerializer
-    permission_classes = [IsAuthenticated] # ← Proteção
+    permission_classes = [IsAdminOrOwner] # ← Proteção
 
     def get_queryset(self):
         """
@@ -304,10 +306,15 @@ class TarefaListCreateAPIView(generics.ListCreateAPIView):
         """
     # 1. Recupera o usuário validado pelo JWT
         user = self.request.user
-    # 2. Retorna o filtro. O Django fará o WHERE user_id = X no banco.
-        return Tarefa.objects.filter(user=user)
+    
+        if user.is_staff:
+            # Admin pode ver todas as tarefas
+            return Tarefa.objects.all()
+        else:
+            # Usuário comum vê apenas suas tarefas
+            return Tarefa.objects.filter(user=user)
 
-    # MÉTODO CHAVE: Injeta o usuário logado antes de salvar o objeto
+    
     def perform_create(self, serializer):
         """
         Associa a tarefa ao usuário logado (request.user) automaticamente.
@@ -322,6 +329,7 @@ class TarefaRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
     
     serializer_class = TarefaSerializer
+    permission_classes = [IsAdminOrOwner]
 
     # MÉTODO CHAVE: Garante que apenas o dono da tarefa possa acessá-la
 
@@ -331,17 +339,33 @@ class TarefaRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
         """
         user = self.request.user
         return Tarefa.objects.filter(user=user)
+    def get_queryset(self):
+        """
+        Filtra as tarefas:
+        - Se o usuário for admin: retorna TODAS as tarefas
+        - Se não: retorna apenas as tarefas do usuário logado
+        """
+        user = self.request.user
+        
+        if user.is_staff:
+            # Admin pode ver todas as tarefas
+            return Tarefa.objects.all()
+        else:
+            # Usuário comum vê apenas suas tarefas
+            return Tarefa.objects.filter(user=user)
+
     def get_permissions(self):
         """
         Instancia e retorna a lista de permissões que esta view requer,
         dependendo do método HTTP da requisição.
         """
         if self.request.method == 'DELETE':
-# Para deletar: Precisa estar logado E ser Gerente
-# A ordem importa: primeiro checa login, depois o grupo
+            # Para deletar: Precisa estar logado E ser Gerente
+            # Mantém a regra original para exclusão
             return [IsAuthenticated(), IsGerente()]
-# Para GET, PUT, PATCH: Basta estar logado (e ser dono, garantido pelo queryset)
-        return [IsAuthenticated()]
+        
+        # Para GET, PUT, PATCH: Usa a nova permissão IsAdminOrOwner
+        return [IsAdminOrOwner()]
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -364,10 +388,11 @@ class LogoutView(APIView):
                 {"detail": "Token inválido."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-class MeView(APIView):
+class MeView(generics.RetrieveAPIView):
     """
     Endpoint para retornar dados do usuário autenticado.
     """
+    serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
@@ -378,7 +403,9 @@ class MeView(APIView):
             'username': user.username,
             'email': user.email,
             'is_staff': user.is_staff,
-            'date_joined': user.date_joined
+            'date_joined': user.date_joined,
+            "cargo": "Comum",
+            "grupos": [],
             },
         )
     
@@ -453,3 +480,16 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [AllowAny] # Sobrescreve o padrão global
     serializer_class = UserRegistrationSerializer
+
+class UserUpdateView(generics.RetrieveUpdateAPIView):
+    """
+    O campo 'email' é read-only e não pode ser alterado.
+    """
+    serializer_class = UserUpdateSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self):
+        """
+        Retorna apenas o próprio usuário autenticado.
+        """
+        return self.request.user

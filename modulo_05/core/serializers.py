@@ -185,7 +185,55 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             # Adiciona o usuário ao grupo
             user.groups.add(grupo_comum)
         except Group.DoesNotExist:
-            # Fallback: Se o grupo não existir, o usuário é criado sem grupo.
-            # Em produção, deveríamos logar um erro aqui.
             pass
             return user
+        
+class UserUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer para atualização de usuário.
+    O campo 'email' é read-only - não pode ser alterado após cadastro.
+    """
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'is_staff', 'date_joined']
+        read_only_fields = ['id', 'email', 'is_staff', 'date_joined']  # email é read-only
+
+    def update(self, instance, validated_data):
+        """
+        Atualiza o usuário, garantindo que o email não seja modificado.
+        """
+        # Remove 'email' se por algum motivo estiver no validated_data
+        validated_data.pop('email', None)
+        
+        # Atualiza os outros campos
+        return super().update(instance, validated_data)
+    
+class UserProfileSerializer(serializers.ModelSerializer):
+    
+    # Para a lista de grupos 
+    grupos = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
+    
+    # mostra apenas o primeiro grupo ou "Comum" se não houver grupo
+    cargo = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 
+                 'is_staff', 'date_joined', 'cargo', 'grupos']
+        read_only_fields = fields
+    
+    def get_cargo(self, obj):
+        """
+        Retorna o nome do primeiro grupo do usuário ou "Comum" se não houver grupo.
+        """
+        grupos = obj.groups.all()
+        
+        if grupos.exists():
+    
+            return grupos.first().name
+        
+        return "Comum"
