@@ -4,7 +4,7 @@ from .models import Tarefa
 from datetime import date
 from django.utils import timezone
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
+from django.contrib.auth.models import User,Group
 
 class TarefaSerializer(serializers.ModelSerializer):
     """
@@ -155,3 +155,37 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
      token['email'] = user.email
      token['is_staff'] = user.is_staff
      return token
+    
+class UserRegistrationSerializer(serializers.ModelSerializer):
+# Definimos 'write_only=True' para que a senha seja aceita no cadastro (POST),
+# mas NUNCA seja devolvida na resposta (Response JSON).
+    password = serializers.CharField(
+    write_only=True,
+    required=True,
+    style={'input_type': 'password'}
+    )
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password']
+    def create(self, validated_data):
+        """
+        Intercepta a criação para usar o 'create_user' e hashear a senha.
+        """
+
+        # Extrai a senha dos dados validados
+        password = validated_data.pop('password')
+        user = User.object.create_user(
+            username=validated_data['username'],
+            email=validated_data.get('email', ''),
+            password=password
+            )
+        try:
+            # Busca o grupo 'Comum'
+            grupo_comum = Group.objects.get(name='Comum')
+            # Adiciona o usuário ao grupo
+            user.groups.add(grupo_comum)
+        except Group.DoesNotExist:
+            # Fallback: Se o grupo não existir, o usuário é criado sem grupo.
+            # Em produção, deveríamos logar um erro aqui.
+            pass
+            return user

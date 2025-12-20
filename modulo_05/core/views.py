@@ -4,11 +4,17 @@ from rest_framework.response import Response
 from rest_framework import status,generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import Tarefa
-from .serializers import TarefaSerializer,CustomTokenObtainPairSerializer
+from .serializers import (
+    TarefaSerializer,
+    CustomTokenObtainPairSerializer,
+    UserRegistrationSerializer,
+    )
 from django.shortcuts import get_object_or_404
 from datetime import timedelta
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import User
+from .permissions import IsGerente
 
 
 class ListaTarefasAPIView(APIView):
@@ -288,9 +294,19 @@ class TarefaListCreateAPIView(generics.ListCreateAPIView):
     Lista tarefas e permite a criação de novas tarefas.
     PROTEGIDA: Requer autenticação JWT.
     """
-    queryset = Tarefa.objects.all()
     serializer_class = TarefaSerializer
     permission_classes = [IsAuthenticated] # ← Proteção
+
+    def get_queryset(self):
+        """
+        Sobrescreve o comportamento padrão para retornar APENAS
+        os dados pertencentes ao usuário logado.
+        """
+    # 1. Recupera o usuário validado pelo JWT
+        user = self.request.user
+    # 2. Retorna o filtro. O Django fará o WHERE user_id = X no banco.
+        return Tarefa.objects.filter(user=user)
+
     # MÉTODO CHAVE: Injeta o usuário logado antes de salvar o objeto
     def perform_create(self, serializer):
         """
@@ -304,16 +320,29 @@ class TarefaRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     Detalhes de tarefa, atualização e exclusão.
     PROTEGIDA: Requer autenticação JWT.
     """
-    queryset = Tarefa.objects.all()
+    
     serializer_class = TarefaSerializer
-    permission_classes = [IsAuthenticated]
+
     # MÉTODO CHAVE: Garante que apenas o dono da tarefa possa acessá-la
+
     def get_queryset(self):
         """
         Filtra as tarefas para retornar apenas as do usuário logado.
         """
         user = self.request.user
         return Tarefa.objects.filter(user=user)
+    def get_permissions(self):
+        """
+        Instancia e retorna a lista de permissões que esta view requer,
+        dependendo do método HTTP da requisição.
+        """
+        if self.request.method == 'DELETE':
+# Para deletar: Precisa estar logado E ser Gerente
+# A ordem importa: primeiro checa login, depois o grupo
+            return [IsAuthenticated(), IsGerente()]
+# Para GET, PUT, PATCH: Basta estar logado (e ser dono, garantido pelo queryset)
+        return [IsAuthenticated()]
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     """View que usa o serializer customizado."""
@@ -415,3 +444,12 @@ class UserStatsView(APIView):
             "pendentes": pendentes,
             "taxa_conclusao": round(taxa_conclusao, 2)
         }, status=status.HTTP_200_OK)
+    
+class RegisterView(generics.CreateAPIView):
+    """
+    Endpoint para cadastro de novos usuários.
+    Acesso: Público (Qualquer um pode criar conta).
+    """
+    queryset = User.objects.all()
+    permission_classes = [AllowAny] # Sobrescreve o padrão global
+    serializer_class = UserRegistrationSerializer

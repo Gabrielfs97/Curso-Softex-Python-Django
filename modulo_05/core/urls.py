@@ -10,7 +10,8 @@ from .views import (
             TarefaRetrieveUpdateDestroyAPIView,
             LogoutView,MeView,
             ChangePasswordView,
-            UserStatsView
+            UserStatsView,
+            RegisterView
             
             )
 
@@ -59,12 +60,21 @@ urlpatterns = [
 
     path('tarefas/<int:pk>/', TarefaRetrieveUpdateDestroyAPIView.as_view(), name='tarefa-detail'),
 
-    path('logout/', LogoutView.as_view(), name='logout'), # ← Novo endpoint
+    path('logout/', LogoutView.as_view(),
+          name='logout'), # ← Novo endpoint
 
-    path('me/', MeView.as_view(), name='me'), 
+    path('me/', MeView.as_view(),
+          name='me'), 
 
-    path('change-password/', ChangePasswordView.as_view(), name='change-password'),
-    
-    path('stats/', UserStatsView.as_view(), name='user-stats'),
+    path('change-password/', ChangePasswordView.as_view(), 
+         name='change-password'),
+
+    path('stats/', UserStatsView.as_view(),
+          name='user-stats'),
+
+    path('register/', RegisterView.as_view(), name='register'),
+
+
+
 
 ]
